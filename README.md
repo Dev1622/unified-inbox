@@ -2,6 +2,10 @@
 
 A production-ready unified messaging dashboard built with **Next.js**, **Prisma**, **Docker**, and **Twilio**. This unified inbox supports real-time WhatsApp messaging, scheduled messages, notes, and email previews — all in a clean, tabbed interface.
 
+# Video Walkthrough Link
+
+https://www.loom.com/share/c12bc73ebc344a5eb2eed4ebaa1fac6d
+
 ---
 
 ## 🚀 Features
