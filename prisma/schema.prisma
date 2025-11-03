@@ -1,0 +1,117 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/* ===== Enums ===== */
+enum Role {
+  admin
+  editor
+  viewer
+}
+
+enum Channel {
+  sms
+  whatsapp
+  email
+}
+
+enum Direction {
+  inbound
+  outbound
+}
+
+enum MessageStatus {
+  queued
+  sent
+  delivered
+  failed
+  received
+}
+
+/* ===== Models ===== */
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  role         Role      @default(viewer)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  messages     Message[] @relation("UserMessages")
+}
+
+model Contact {
+  id         String             @id @default(cuid())
+  name       String
+  phone      String?            @unique
+  email      String?            @unique
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+
+  messages   Message[]
+  schedules  ScheduledMessage[]
+  notes      Note[]             
+
+  @@index([phone])
+  @@index([email])
+}
+
+model Message {
+  id          String        @id @default(cuid())
+  contact     Contact       @relation(fields: [contactId], references: [id])
+  contactId   String
+  user        User?         @relation("UserMessages", fields: [userId], references: [id])
+  userId      String?
+  channel     Channel
+  direction   Direction
+  body        String
+  mediaUrl    String?
+  providerId  String?       // Twilio/Resend message id
+  status      MessageStatus
+  sentAt      DateTime?
+  receivedAt  DateTime?
+  createdAt   DateTime      @default(now())
+
+  @@index([contactId, createdAt])
+  @@index([channel, createdAt])
+}
+
+model ScheduledMessage {
+  id           String    @id @default(cuid())
+  contact      Contact   @relation(fields: [contactId], references: [id])
+  contactId    String
+  channel      Channel
+  body         String
+  scheduledAt  DateTime
+  status       String    @default("pending") // pending|sent|canceled|failed
+  createdAt    DateTime  @default(now())
+
+  @@index([scheduledAt, status])
+}
+
+model Note {
+  id         String   @id @default(cuid())
+  contact    Contact  @relation(fields: [contactId], references: [id])
+  contactId  String
+  body       String
+  createdAt  DateTime @default(now())
+
+  @@index([contactId, createdAt])
+}
+
+
